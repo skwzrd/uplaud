@@ -1,0 +1,262 @@
+:root {
+    --font_color: #dbc2be;
+    --link_color: #dbc2be;
+    --link_color_hover: #8f8f8f;
+    --font_color_shaded: #775956;
+    --background: #3d3d3d;
+    --background-dark-2: #272727;
+    --background-light: #3d3d3d;
+    --background-dark: #5a4708;
+    --border_color: #bea844;
+    --border_color_card: #747474;
+    --form_control_bg: #555044;
+    --form_control_color: #ffd970;
+    --btn-bg: #23103c;
+    --btn-color: antiquewhite;
+}
+
+a,
+a:active,
+a:visited,
+a.btn,
+a.btn:active,
+a.btn:visited,
+.btn,
+.btn:active,
+.btn:visited {
+    background-color: var(--background-light);
+    color: var(--link_color);
+    border-color: var(--border_color);
+}
+
+a:focus,
+a:hover,
+a.btn:focus,
+a.btn:hover,
+.btn:focus,
+.btn:hover {
+    background-color: var(--background-light) !important;
+    color: var(--link_color_hover) !important;
+    border-color: var(--border_color) !important;
+}
+
+input[type="number"] {
+    padding: 5px;
+    width: 6em;
+}
+
+textarea,
+input[type=text],
+input[type=file],
+input[type=number],
+input[type=password],
+form>div>img,
+.form-check-input,
+.form-control,
+.form-control:active,
+.form-control:focus {
+    font-family: inherit;
+    font-size: inherit;
+    color: var(--form_control_color);
+    background-color: var(--form_control_bg);
+    margin-top: 5px;
+    max-width: 100%;
+    border-radius: 4px;
+    padding: 4px;
+    border: 1px solid var(--border_color);
+}
+
+input {
+    margin-bottom: 1em;
+}
+
+textarea {
+    margin: auto;
+    margin-bottom: 1em;
+    width: 99%;
+    height: 100px;
+    display: block;
+}
+
+html {
+    color-scheme: var(--font_color);
+    background-color: var(--background);
+    color: var(--font_color);
+    font-family: system-ui, arial;
+}
+
+body {
+    margin: auto;
+    max-width: 800px;
+    padding: 1em;
+}
+
+h3 {
+    margin-top: 0;
+    text-decoration: underline;
+}
+
+.list_record {
+    list-style-type: none;
+    margin-bottom: 1em;
+    border: 1px solid;
+    border-radius: 4px;
+    padding: 1em;
+}
+
+div {
+    display: block;
+}
+
+img {
+    max-width: 99%;
+    max-height: 300px;
+}
+
+video {
+    max-width: 99%;
+    max-height: 300px;
+}
+
+.container {
+    max-width: 300px;
+    max-height: 300px;
+}
+
+#flash {
+    padding: 1em;
+    margin-bottom: 1em;
+    border-radius: 4px;
+}
+
+.card {
+    color: var(--font_color);
+    background-color: var(--background-light);
+    margin-bottom: 2em;
+    padding: 1em;
+    border: 1px solid var(--border_color_card);
+    border-radius: 4px;
+}
+
+.pb {
+    padding-bottom: 6px;
+}
+
+.pb2 {
+    padding-bottom: 2em;
+}
+
+input[type=submit],
+button {
+    background-color: var(--btn-bg);
+    color: var(--btn-color);
+    border: 1px solid var(--btn-color);
+    border-radius: 4px;
+    padding: 6px;
+    cursor: pointer;
+}
+
+button > svg {
+    padding: 2px;
+    padding-bottom: 0px;
+    width: 1.5em;
+    height: 1.5em;
+}
+
+.card-header {
+    color: var(--font_color);
+    background-color: var(--background-dark);
+}
+
+.scroll_y {
+    overflow-y: scroll;
+    max-height: 500px;
+}
+
+.scroll_x {
+    overflow-x: auto;
+}
+
+.p {
+    display: block;
+    margin-top: 1em;
+}
+
+.i {
+    font-style: italic;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.file_drop_zone {
+    max-width: 100%;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    cursor: pointer;
+    background-color: var(--background-dark);
+    color: var(--font_color);
+    border: 3px solid var(--border_color);
+    border-radius: 10px;
+    margin-bottom: 1em;
+
+}
+
+.file_drop_over {
+    border-style: double;
+}
+
+.file_drop_input {
+    display: none;
+}
+
+.pre {
+    white-space: pre;
+    background-color: var(--background-dark-2);
+    padding: 1em;
+    border-radius: 4px;
+}
+
+.file_drop_thumb {
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    font-size: 12px;
+    white-space: pre;
+    align-content: center;
+}
+
+.sep {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: center;
+}
+
+ul {
+    padding: 0;
+}
+
+.bg-danger {
+    background-color: #530000;
+}
+
+.bg-success {
+    background-color: #132d17;
+}
+
+.bg-warning {
+    background-color: #1f1f1f;
+}

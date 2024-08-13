@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="icon" href="data:,">
+    <link href="{{ url_for('static', filename='css/index.css') }}" rel="stylesheet">
+    <title>Uplaud</title>
+  </head>
+
+  <body>
+    <div style="width: min-content;">
+      <a href="/">
+        <h2>Uplaud</h2>
+      </a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          {% set font_color = 'white' %}
+          {% if category in ['warning'] %}
+            {% set font_color = 'black' %}
+          {% endif %}
+          {% set another = testing %}
+          <div id="flash" class="bg-{{category}} text-{{font_color}} ">
+            <div class="hstack">
+              <div>{{ message }}</div>
+            </div>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% for form in [user_form, upload_form] %}
+      {% for field in form %}
+        <div>
+          {% if field.errors %}
+            <ul>
+              {% for error in field.errors %}
+                <li>{{field.name.title()}}: {{ error }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </div>
+      {% endfor %}
+    {% endfor %}
+
+    {% if logged_in %}
+    <div class="pb2">
+        <form action="{{ url_for('logout') }}" method="get">
+          <button type="submit">Logout</button>
+        </form>
+      </div>
+    {% endif %}
+
+    {% if not logged_in %}
+    <div class="card">
+      <h3>Visit Uploads</h3>
+      <form action="/p" id="user_form" method="post" enctype="multipart/form-data">
+        {{user_form.hidden_tag()}}
+        <div>
+          <input type="text" name="username" required maxlength="32" placeholder="Username">
+          <input type="password" name="password" required maxlength="512" placeholder="Password">
+        </div>
+        {{user_form.submit()}}
+      </form>
+    </div>
+    {% endif %}
+
+    <div class="card">
+      <h3>Upload Data</h3>
+      <form action="/p" id="upload_form" method="POST" enctype="multipart/form-data">
+        {{upload_form.hidden_tag()}}
+
+        {% if not logged_in %}
+        <input type="text" name="username" required maxlength="32" placeholder="Username">
+        <input type="password" name="password" required maxlength="512" placeholder="Password">
+        {% endif %}
+
+        <textarea name="text" placeholder="Text (Optional)"></textarea>
+
+        <div class="file_drop_zone">
+          <span class="file_drop_prompt">Drop file here or click to upload</span>
+          <input class="file_drop_input" id="files" multiple="" name="files" type="file">
+        </div>
+
+        <div>
+          <div>Delete in (Optional)</div>
+
+          <input type="number" id="delete_days" name="delete_days" placeholder="Days" default="0" min="0" max="5">
+          <input type="number" id="delete_hours" name="delete_hours" placeholder="Hours" default="0" min="0" max="24">
+          <input type="number" id="delete_minutes" name="delete_minutes" placeholder="Minutes" default="15" min="0"
+                 max="60">
+        </div>
+        {{upload_form.upload()}}
+      </form>
+    </div>
+    
+    {% if logged_in %}
+      {% if not file_records and not text_records and logged_in %}
+      No existing data found.
+      {% endif %}
+    {% endif %}
+
+    {% if text_records %}
+      <h4>Text</h4>
+      {% for text in text_records %}
+        <ul>
+          <li class="list_record">
+            <div class="sep">
+              <span>
+                <button onclick="copy_text(this, 'text{{text.text_id}}')">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-copy" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd"
+                          d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1z" />
+                  </svg>
+                </button>
+                <button onclick="download_text_as_txt_file(this, 'text{{text.text_id}}')">
+                  <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M4 4C4 3.44772 4.44772 3 5 3H14H14.5858C14.851 3 15.1054 3.10536 15.2929 3.29289L19.7071 7.70711C19.8946 7.89464 20 8.149 20 8.41421V20C20 20.5523 19.5523 21 19 21H5C4.44772 21 4 20.5523 4 20V4Z"
+                      stroke="#200E32" stroke-width="2" stroke-linecap="round" />
+                    <path d="M20 8H15V3" stroke="#200E32" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M12 9L12 17" stroke="#200E32" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M9 14L12 17L15 14" stroke="#200E32" stroke-width="2" stroke-linecap="round"
+                          stroke-linejoin="round" />
+                  </svg>
+                </button>
+              </span>
+              <span><b>{{ text.days_to_expiration }}</b> left</span>
+            </div>
+            <span class="p pre scroll_y scroll_x" id="text{{text.text_id}}">{{ text.text }}</span>
+          </li>
+        </ul>
+        </tr>
+      {% endfor %}
+    {% endif %}
+
+    {% if file_records %}
+      <h4>Files</h4>
+
+      <ul>
+        {% for file in file_records %}
+          <li class="list_record">
+            <div class="sep">
+              <a href="{{ url_for('static', filename='uploads/' + file.filename_secure) }}"
+                 download><button>Download</button></a>
+              <span><b>{{ file.days_to_expiration }}</b> left</span>
+            </div>
+
+            <div class="p">
+              <div class="scroll_x pb">
+                <span class="i">
+                  {{file.filename_original}}
+                </span>
+              </div>
+
+              {% if file.file_size_b %}
+                <div><small>{{ file.file_size_b }}</div></small>
+              {% endif %}
+
+              <div class="container">
+                {% if file.file_type in ['png', 'jpg', 'jpeg', 'gif', 'heif'] %}
+                  <img class="p" loading="lazy" src="{{ url_for('static', filename='uploads/' + file.filename_secure) }}" alt="Image">
+                {% elif file.file_type in ['mp4', 'webm'] %}
+                  <video loading="lazy" class="p" controls>
+                    <source loading="lazy" src="{{ url_for('static', filename='uploads/' + file.filename_secure) }}"
+                            type="video/{{ file.file_type }}">
+                    Your browser does not support the video tag.
+                  </video>
+                {% endif %}
+              </div>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    <script>
+      function disable_button(element, form_id) {
+        element.disabled = true;
+        element.style.cursor = "not-allowed";
+        element.value = "...";
+        document.getElementById(form_id).submit();
+      }
+
+      function download_text_as_txt_file(button, text_element_id) {
+        const textElement = document.getElementById(text_element_id);
+        if (!textElement) {
+          return;
+        }
+        const text = textElement.textContent || textElement.innerText;
+        const blob = new Blob([text], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'uplaud.txt';
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      function copy_text(button_element, text_element_id) {
+        const textElement = document.getElementById(text_element_id);
+        if (!textElement) {
+          return;
+        }
+        const text = textElement.textContent || textElement.innerText;
+
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+
+        button_element.innerHTML = `
+            <svg fill="#ffd970" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <polygon fill-rule="evenodd" points="9.707 14.293 19 5 20.414 6.414 9.707 17.121 4 11.414 5.414 10"/>
+            </svg>
+        `;
+        setTimeout(() => {
+          button_element.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-copy" viewBox="0 0 16 16">
+              <path fill-rule="evenodd" d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1z"/>
+            </svg>
+        `;
+        }, 2000);
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        const uploadForm = document.getElementById('upload_form');
+        const filesInput = document.getElementById('files');
+        const totalSizeLimit = 100 * 1024 * 1024;
+
+        uploadForm.addEventListener('submit', (e) => {
+          if (!within_fsize_range(filesInput.files)) {
+            e.preventDefault();
+            alert('Total file size exceeds 100MB.');
+            return;
+          }
+          uploadForm.submit();
+        });
+
+
+        document.querySelectorAll(".file_drop_input").forEach(inputElement => {
+          const dropZoneElement = inputElement.closest(".file_drop_zone");
+
+          dropZoneElement.addEventListener("click", () => inputElement.click());
+
+          inputElement.addEventListener("change", () => {
+            const files = inputElement.files;
+            if(is_valid_files(files)){
+              updateThumbnail(dropZoneElement, files);
+            }
+          });
+
+          dropZoneElement.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            dropZoneElement.classList.add("file_drop_over");
+          });
+
+          ["dragleave", "dragend"].forEach(type => {
+            dropZoneElement.addEventListener(type, () => {
+              dropZoneElement.classList.remove("file_drop_over");
+            });
+          });
+
+          dropZoneElement.addEventListener("drop", (e) => {
+            e.preventDefault();
+            dropZoneElement.classList.remove("file_drop_over");
+
+            const files = e.dataTransfer.files;
+            if(is_valid_files(files)){
+
+            // manually trigger file input update
+              const dataTransfer = new DataTransfer();
+              for (const file of files) {
+                dataTransfer.items.add(file);
+              }
+              inputElement.files = dataTransfer.files;
+
+              updateThumbnail(dropZoneElement, files);
+            }
+          });
+        });
+
+        function is_valid_files(files) {
+          if (!files.length) {
+            alert('No files selected.');
+            return false;
+          }
+
+          if (files.length > 10) {
+            alert('There is a limit of 10 files per request.');
+            return false;
+          }
+
+          if (!within_fsize_range(files)) {
+            alert('Total file size exceeds 100MB.');
+            return false;
+          }
+
+          return true;
+        }
+
+        function within_fsize_range(files) {
+          const maxSize = 100 * 1024 * 1024;
+          let totalSize = 0;
+          for (const file of files) {
+            totalSize += file.size;
+          }
+          return totalSize <= maxSize;
+        }
+
+        function updateThumbnail(dropZoneElement, files) {
+          let thumbnailElement = dropZoneElement.querySelector(".file_drop_thumb");
+
+          if (!thumbnailElement) {
+            thumbnailElement = document.createElement("div");
+            thumbnailElement.classList.add("file_drop_thumb");
+            dropZoneElement.appendChild(thumbnailElement);
+          }
+
+          if (dropZoneElement.querySelector(".file_drop_prompt")) {
+            dropZoneElement.querySelector(".file_drop_prompt").remove();
+          }
+
+          const fileNames = Array.from(files).map(file => file.name).join('\n ');
+          thumbnailElement.textContent = fileNames;
+        }
+      });
+
+    </script>
+  </body>
+
+</html>
