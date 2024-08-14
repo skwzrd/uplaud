@@ -47,6 +47,7 @@ app.config['SESSION_COOKIE_HTTPONLY']=True
 app.config['SESSION_COOKIE_SECURE']=True
 
 
+limiter.init_app(app)
 init_db(database_path)
 
 
