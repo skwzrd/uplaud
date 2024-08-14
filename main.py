@@ -76,7 +76,6 @@ def logout():
     return redirect(url_for('upload_get'))
 
 
-@limiter.limit("20/day", methods=["GET"])
 @limiter.limit("10/minute", methods=["GET"])
 @app.route('/', methods=['GET'])
 def upload_get():
@@ -91,7 +90,7 @@ def upload_get():
 
 @app.route('/p', methods=['POST'])
 @limiter.limit("20/day", methods=["POST"])
-@limiter.limit("10/minute", methods=["POST"])
+@limiter.limit("5/minute", methods=["POST"])
 def upload_post():
     user_form: FlaskForm = UserForm()
     upload_form: FlaskForm = UploadForm()
