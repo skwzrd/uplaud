@@ -1,8 +1,9 @@
 import os
 from datetime import datetime, timedelta
 
-from flask import Flask, flash, redirect, render_template, url_for, session
+from flask import Flask, flash, redirect, render_template, session, url_for
 from flask_wtf import FlaskForm
+from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 
@@ -22,6 +23,7 @@ from configs import (
 from db import get_db_conn, init_db, query_db
 from forms import UploadForm, UserForm
 from limiter import limiter
+from logg import logger
 from utils import (
     format_fsize,
     format_time_bin,
@@ -30,12 +32,13 @@ from utils import (
     get_current_datetime_w_us_str,
     get_date_format
 )
-from logg import logger
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 
 app = Flask(__name__)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+
 app.config['SECRET_KEY'] = secret
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 app.config['MAX_CONTENT_LENGTH'] = max_total_upload_size_b

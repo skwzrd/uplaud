@@ -1,8 +1,10 @@
 import datetime
 import os
+
 from configs import database_path
 from db import get_db_conn
 from logg import logger
+
 
 def remove_expired_data():
     conn = get_db_conn(database_path)
