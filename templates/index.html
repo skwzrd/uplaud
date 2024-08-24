@@ -33,20 +33,6 @@
       {% endif %}
     {% endwith %}
 
-    {% for form in [user_form, upload_form] %}
-      {% for field in form %}
-        <div>
-          {% if field.errors %}
-            <ul>
-              {% for error in field.errors %}
-                <li>{{field.name.title()}}: {{ error }}</li>
-              {% endfor %}
-            </ul>
-          {% endif %}
-        </div>
-      {% endfor %}
-    {% endfor %}
-
     {% if logged_in %}
     <div class="pb2">
         <form action="{{ url_for('logout') }}" method="get">
@@ -61,8 +47,8 @@
       <form action="/p" id="user_form" method="post" enctype="multipart/form-data">
         {{user_form.hidden_tag()}}
         <div>
-          <input type="text" name="username" required maxlength="32" placeholder="Username">
-          <input type="password" name="password" required maxlength="512" placeholder="Password">
+          {{user_form.username()}}
+          {{user_form.password()}}
         </div>
         {{user_form.submit()}}
       </form>
@@ -75,8 +61,8 @@
         {{upload_form.hidden_tag()}}
 
         {% if not logged_in %}
-        <input type="text" name="username" required maxlength="32" placeholder="Username">
-        <input type="password" name="password" required maxlength="512" placeholder="Password">
+          {{upload_form.username()}}
+          {{upload_form.password()}}
         {% endif %}
 
         <textarea name="text" placeholder="Text (Optional)"></textarea>
@@ -89,10 +75,9 @@
         <div>
           <div>Delete in (Optional)</div>
 
-          <input type="number" id="delete_days" name="delete_days" placeholder="Days" default="0" min="0" max="5">
-          <input type="number" id="delete_hours" name="delete_hours" placeholder="Hours" default="0" min="0" max="24">
-          <input type="number" id="delete_minutes" name="delete_minutes" placeholder="Minutes" default="15" min="0"
-                 max="60">
+          {{upload_form.delete_days()}}
+          {{upload_form.delete_hours()}}
+          {{upload_form.delete_minutes()}}
         </div>
         {{upload_form.upload()}}
       </form>
@@ -129,7 +114,7 @@
                   </svg>
                 </button>
               </span>
-              <span><b>{{ text.days_to_expiration }}</b> left</span>
+              <span><b>{{ text.expiration_str }}</b> left</span>
             </div>
             <span class="p pre scroll_y scroll_x" id="text{{text.text_id}}">{{ text.text }}</span>
           </li>
@@ -147,7 +132,7 @@
             <div class="sep">
               <a href="{{ url_for('static', filename='uploads/' + file.filename_secure) }}"
                  download><button>Download</button></a>
-              <span><b>{{ file.days_to_expiration }}</b> left</span>
+              <span><b>{{ file.expiration_str }}</b> left</span>
             </div>
 
             <div class="p">
@@ -157,8 +142,8 @@
                 </span>
               </div>
 
-              {% if file.file_size_b %}
-                <div><small>{{ file.file_size_b }}</div></small>
+              {% if file.file_size_str %}
+                <div><small>{{ file.file_size_str }}</div></small>
               {% endif %}
 
               <div class="container">

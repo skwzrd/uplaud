@@ -6,7 +6,7 @@ from flask import g
 
 
 class dotdict(dict):
-    """dot.notation access to dictionary attributes"""
+    '''dot.notation access to dictionary attributes'''
     __getattr__ = dict.get
     __setattr__ = dict.__setitem__
     __delattr__ = dict.__delitem__
@@ -61,14 +61,14 @@ def get_cursor(database_path):
 def init_db(database_path):
     if not os.path.isfile(database_path):
         sql_strings = [
-            """
+            '''
             CREATE TABLE IF NOT EXISTS users (
                 user_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT NOT NULL UNIQUE,
                 password TEXT NOT NULL,
                 created_datetime DATETIME NOT NULL
-            )"""
-            , """
+            )'''
+            , '''
             CREATE TABLE IF NOT EXISTS files (
                 file_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER NOT NULL,
@@ -80,8 +80,8 @@ def init_db(database_path):
                 upload_datetime DATETIME NOT NULL,
                 delete_datetime DATETIME NOT NULL,
                 FOREIGN KEY(user_id) REFERENCES user(user_id)
-            )"""
-            , """
+            )'''
+            , '''
             CREATE TABLE IF NOT EXISTS texts (
                 text_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER NOT NULL,
@@ -90,7 +90,7 @@ def init_db(database_path):
                 upload_datetime DATETIME NOT NULL,
                 delete_datetime DATETIME NOT NULL,
                 FOREIGN KEY(user_id) REFERENCES user(user_id)
-            )"""
+            )'''
         ]
         for sql_string in sql_strings:
             query_db(database_path, sql_string, commit=True)

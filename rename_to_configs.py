@@ -11,6 +11,8 @@ max_server_data_size_b = 5 * 1024 * 1024 * 1024
 max_text_size_chars = 10_000_000
 
 default_expiration_minutes = 15
+
+# these sum together to create a 'max age' for uploaded content
 max_data_age_days = 5
 max_data_age_hours = 24
 max_data_age_minutes = 15
