@@ -17,8 +17,8 @@ default_expiration_minutes: int = 15
 max_data_age_days: int = 5
 max_data_age_hours: int = 24
 max_data_age_minutes: int = 15
-max_data_age: str = timedelta(days=max_data_age_days, hours=max_data_age_hours, minutes=max_data_age_minutes)
-max_data_age_str: str = format_time_bin(max_data_age)
+max_data_age: timedelta = timedelta(days=max_data_age_days, hours=max_data_age_hours, minutes=max_data_age_minutes)
+max_data_age_str: str = format_time_bin(max_data_age.total_seconds() / 60)
 
 max_file_upload_count: int = 10
 
