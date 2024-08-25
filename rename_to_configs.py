@@ -1,22 +1,26 @@
-from utils import make_path
+from datetime import timedelta
 
-secret = 'jhfrjeghfjrghjlllloooooooooorgnvnfn' # change me
+from utils import format_time_bin, make_path
 
-database_path = make_path('uplaud.db')
+secret: str = 'jhfrjeghfjrghjlllloooooooooorgnvnfn' # change me
+database_path: str = make_path('uplaud.db')
 
-max_total_upload_size_b = 100 * 1024 * 1024
-max_text_size_b = 10 * 1024 * 1024
-max_server_data_size_b = 5 * 1024 * 1024 * 1024
+max_total_upload_size_b: int = 100 * 1024 * 1024 # nginx will require setting `require client_max_body_size 100m`;
+max_text_size_b: int = 10 * 1024 * 1024
+max_server_data_size_b: int = 5 * 1024 * 1024 * 1024
 
-max_text_size_chars = 10_000_000
+max_text_size_chars: int = 10_000_000
 
-default_expiration_minutes = 15
+default_expiration_minutes: int = 15
 
-# these sum together to create a 'max age' for uploaded content
-max_data_age_days = 5
-max_data_age_hours = 24
-max_data_age_minutes = 15
+# these sum together to create a `max_data_age` for uploaded content
+max_data_age_days: int = 5
+max_data_age_hours: int = 24
+max_data_age_minutes: int = 15
+max_data_age: str = timedelta(days=max_data_age_days, hours=max_data_age_hours, minutes=max_data_age_minutes)
+max_data_age_str: str = format_time_bin(max_data_age)
 
-max_file_upload_count = 10
+max_file_upload_count: int = 10
 
-max_user_count = 20
+max_user_count: int = 20
+

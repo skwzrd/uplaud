@@ -1,12 +1,14 @@
 import os
 from datetime import datetime
 
-from flask import Flask, flash, redirect, render_template, session, url_for, g
+from flask import Flask, flash, g, redirect, render_template, session, url_for
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.utils import secure_filename
 
 from configs import (
     database_path,
+    default_expiration_minutes,
+    max_data_age_str,
     max_total_upload_size_b,
     secret
 )
@@ -23,22 +25,27 @@ from utils import (
     get_date_format
 )
 
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+def create_app():
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+    app = Flask(__name__)
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+
+    app.config['SECRET_KEY'] = secret
+    app.config['UPLOAD_FOLDER'] = 'static/uploads'
+    app.config['MAX_CONTENT_LENGTH'] = max_total_upload_size_b
+    app.config['SESSION_COOKIE_NAME']='uplaudcookie'
+    app.config['SESSION_COOKIE_HTTPONLY']=True
+    app.config['SESSION_COOKIE_SECURE']=True
+
+    limiter.init_app(app)
+    init_db(database_path)
+    
+    return app
 
 
-app = Flask(__name__)
-app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
-
-app.config['SECRET_KEY'] = secret
-app.config['UPLOAD_FOLDER'] = 'static/uploads'
-app.config['MAX_CONTENT_LENGTH'] = max_total_upload_size_b
-app.config['SESSION_COOKIE_NAME']='uplaudcookie'
-app.config['SESSION_COOKIE_HTTPONLY']=True
-app.config['SESSION_COOKIE_SECURE']=True
-
-
-limiter.init_app(app)
-init_db(database_path)
+app = create_app()
 
 
 def get_data(user_id):
@@ -120,7 +127,6 @@ def logout():
     return redirect(url_for('upload_get'))
 
 
-@limiter.limit('10/minute', methods=['GET'])
 @app.route('/', methods=['GET'])
 def upload_get():
     user_form: UserForm = UserForm()
@@ -128,14 +134,29 @@ def upload_get():
 
     if session.get('user_id'):
         file_records, text_records = get_data(session.get('user_id'))
-        return render_template('index.html', logged_in=True, upload_form=upload_form, user_form=user_form, file_records=file_records, text_records=text_records)
+        d = dict(
+            upload_form=upload_form,
+            user_form=user_form,
+            file_records=file_records,
+            text_records=text_records,
+            max_data_age_str=max_data_age_str,
+            logged_in=session.get('user_id'),
+        )
+        return render_template('index.html', **d)
 
-    return render_template('index.html', upload_form=upload_form, user_form=user_form)
+    d = dict(
+        upload_form=upload_form,
+        user_form=user_form,
+        default_expiration_str=format_time_bin(default_expiration_minutes),
+        max_data_age_str=max_data_age_str,
+        logged_in=session.get('user_id'),
+    )
+    return render_template('index.html', **d)
 
 
 @app.route('/p', methods=['POST'])
 @limiter.limit('20/day', methods=['POST'])
-@limiter.limit('5/minute', methods=['POST'])
+@limiter.limit('10/minute', methods=['POST'])
 def upload_post():
     user_form: UserForm = UserForm()
     upload_form: UploadForm = UploadForm()
@@ -147,7 +168,7 @@ def upload_post():
         flash('Welcome Back!', 'success')
         return redirect(url_for('upload_get'))
 
-    elif upload_form.upload.data and upload_form.validate_on_submit():
+    elif upload_form.upload.data and upload_form.validate_on_submit() and session.get('user_id'):
 
         # set during form validation
         user_id = session['user_id']

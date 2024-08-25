@@ -74,7 +74,10 @@
 
         <div>
           <div>Delete in (Optional)</div>
-
+          <small>Default: {{default_expiration_str}}</small>
+          <br>
+          <small>Limit: {{max_data_age_str}}</small>
+          <br>
           {{upload_form.delete_days()}}
           {{upload_form.delete_hours()}}
           {{upload_form.delete_minutes()}}

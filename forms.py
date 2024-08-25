@@ -1,6 +1,6 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 
-from flask import flash, g, redirect, url_for, session
+from flask import flash, g, session
 from flask_wtf import FlaskForm
 from werkzeug.security import check_password_hash, generate_password_hash
 from wtforms import (
@@ -8,24 +8,26 @@ from wtforms import (
     PasswordField,
     StringField,
     SubmitField,
-    TextAreaField,
+    TextAreaField
 )
-from wtforms.validators import DataRequired, Length, ValidationError
+from wtforms.validators import DataRequired, Length, StopValidation
 
 from configs import (
     database_path,
     default_expiration_minutes,
+    max_data_age,
     max_data_age_days,
     max_data_age_hours,
     max_data_age_minutes,
+    max_data_age_str,
     max_file_upload_count,
     max_server_data_size_b,
     max_text_size_b,
-    max_text_size_chars, 
+    max_text_size_chars,
     max_user_count
 )
-from db import query_db, get_db_conn
-from utils import get_bcount_from_string, format_fsize
+from db import get_db_conn, query_db
+from utils import format_fsize, format_time_bin, get_bcount_from_string
 
 
 def get_user(username):
@@ -56,7 +58,7 @@ def validate_username_is_provided(form, field):
 
     if not username:
         flash('Please provide a username.', 'warning')
-        raise ValidationError('Please provide a username.')
+        raise StopValidation()
 
 
 def validate_login_user(form, field):
@@ -69,7 +71,7 @@ def validate_login_user(form, field):
 
     if not user_record or not is_correct_password(user_record, password_candidate):
         flash('Incorrect username or password.', 'warning')
-        raise ValidationError('Incorrect username or password.')
+        raise StopValidation()
 
     session['user_id'] = user_record['user_id']
 
@@ -89,14 +91,14 @@ def validate_uploading_user(form, field):
         user_count = query_db(database_path, '''select count(*) as s from users;''', one=True)['s']
         if user_count + 1 > max_user_count:
             flash('Server resources are currently overburdened. Come back later.', 'warning')
-            return redirect(url_for('upload_get'))
+            raise StopValidation()
 
         session['user_id'] = create_user(username, password_candidate)
         return
 
     if not is_correct_password(user_record, password_candidate):      
         flash(f'The provided username may already exist. Unless you typed the wrong password, please use a different set of credentials for your submission.', 'danger')
-        return redirect(url_for('upload_get'))
+        raise StopValidation()
 
     session['user_id'] = user_record['user_id']
 
@@ -109,30 +111,18 @@ def validate_upload(form, field):
         text_size_b = get_bcount_from_string(text)
         if text_size_b > max_text_size_b:
             flash(f'Text must be less than {format_fsize(max_text_size_b)}. We received {format_fsize(text_size_b)}.', 'warning')
-            raise ValidationError(f'Text must be less than {format_fsize(max_text_size_b)}. We received {format_fsize(text_size_b)}.')
+            raise StopValidation()
 
     files = [f for f in form.files.data]
     file_count = len(files)
     is_files = any(files)
     if not text and not is_files:
         flash('Form must include either text or files.', 'warning')
-        raise ValidationError('Form must include either text or files.')
+        raise StopValidation()
 
     if file_count > max_file_upload_count:
         flash(f'Total file count exceeds {max_file_upload_count}. We received {file_count} files.')
-        raise ValidationError(f'Total file count exceeds {max_file_upload_count}. We received {file_count} files.')
-
-
-def validate_minutes(form, field):
-    if form.delete_days.data > max_data_age_minutes:
-        flash(f'There is currently a limit of {max_data_age_days} days. This limit was used.', 'warning')
-        form.deleted_days.data = max_data_age_days
-
-
-def validate_hours(form, field):
-    if form.delete_hours.data > max_data_age_hours:
-        flash(f'There is currently a limit of {max_data_age_days} hours. This limit was used.', 'warning')
-        form.delete_hours.data = max_data_age_days
+        raise StopValidation()
 
 
 def validate_unit_of_time(field_name):
@@ -155,7 +145,7 @@ def validate_unit_of_times(form, field):
     '''Coerces the data, will not raise a ValidationError'''
 
     current_datetime = g.current_datetime
-    max_date = current_datetime + timedelta(days=max_data_age_days, hours=max_data_age_hours, minutes=max_data_age_minutes)
+    max_date: datetime = current_datetime + max_data_age
     default_expiration = current_datetime + timedelta(minutes=default_expiration_minutes)
 
     delete_days = form.delete_days.data or 0
@@ -163,14 +153,14 @@ def validate_unit_of_times(form, field):
     delete_minutes = form.delete_minutes.data or 0
 
     if not any([delete_days, delete_hours, delete_minutes]):
-        flash(f'Deletion period not provided. Your data will expire in {default_expiration_minutes} minutes.', 'warning')
+        flash(f'Deletion period not provided. Your data will expire in {format_time_bin(default_expiration_minutes)}.', 'warning')
         g.delete_datetime = default_expiration
         return
 
-    delete_datetime = current_datetime + timedelta(days=delete_days, hours=delete_hours, minutes=delete_minutes)
+    delete_datetime: datetime = current_datetime + timedelta(days=delete_days, hours=delete_hours, minutes=delete_minutes)
     if delete_datetime > max_date:
-        days_diff = (delete_datetime - max_date).days
-        flash(f'The deletion period is {days_diff} days over the allowed range. Your data will instead expire in {max_data_age_days} days.', 'warning')
+        diff_str = format_time_bin((delete_datetime - max_date).total_seconds() / 60)
+        flash(f'The deletion period is {diff_str} over the allowed range. Your data will instead expire in {max_data_age_str}.', 'warning')
         g.delete_datetime = max_date
         return
 
@@ -185,7 +175,7 @@ def validate_server_capacity(form, field):
 
     if total_server_size_b > max_server_data_size_b:
         flash('Server resources are currently depleted. Come back later.', 'warning')
-        raise ValidationError('Server resources are currently depleted. Come back later.')
+        raise StopValidation()
 
 
 class UserForm(FlaskForm):
@@ -195,8 +185,8 @@ class UserForm(FlaskForm):
 
 
 class UploadForm(FlaskForm):
-    username = StringField('Username', validators=[Length(min=0, max=512), validate_uploading_user], render_kw={'placeholder': 'Username'})
-    password = PasswordField('Password', validators=[Length(min=0, max=512)], render_kw={'placeholder': 'Password'})
+    username = StringField('Username', validators=[Length(min=1, max=512), validate_uploading_user], render_kw={'placeholder': 'Username'})
+    password = PasswordField('Password', validators=[Length(min=1, max=512)], render_kw={'placeholder': 'Password'})
 
     text = TextAreaField('Text', [Length(min=0, max=max_text_size_chars)])
     files = MultipleFileField('Files', [validate_upload, validate_server_capacity])
