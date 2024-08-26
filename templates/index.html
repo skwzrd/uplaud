@@ -6,13 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="icon" href="data:,">
     <link href="{{ url_for('static', filename='css/index.css') }}" rel="stylesheet">
-    <title>Uplaud</title>
+    <title>{{sitename}}</title>
   </head>
 
   <body>
     <div style="width: min-content;">
       <a href="/">
-        <h2>Uplaud</h2>
+        <h2>{{sitename}}</h2>
       </a>
     </div>
 
@@ -167,6 +167,42 @@
     {% endif %}
 
     <script>
+      function formatTimeBin(minutes) {
+          let s = '';
+          if (minutes < 60) {
+              s = minutes !== 1 ? `${Math.round(minutes * 10) / 10}m` : '1m';
+          } else if (minutes < 1440) {
+              const hours = minutes / 60;
+              s = hours !== 1 ? `${Math.round(hours * 10) / 10}h` : '1h';
+          } else {
+              const days = minutes / 1440;
+              s = days !== 1 ? `${Math.floor(days)}d` : '1d';
+          }
+          return s;
+      }
+
+      function formatFsize(bytesSize) {
+          if (typeof bytesSize !== 'number' || !Number.isInteger(bytesSize)) {
+              return null;
+          }
+          const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
+          const threshold = 1024;
+          if (bytesSize === 0) {
+              return '0B';
+          }
+          let size = bytesSize;
+          let unitIndex = 0;
+          while (size >= threshold && unitIndex < units.length - 1) {
+              size /= threshold;
+              unitIndex++;
+          }
+          let formattedSize = `${size.toFixed(1)}${units[unitIndex]}`;
+          if (formattedSize.endsWith('.0')) {
+              formattedSize = formattedSize.slice(0, -2);
+          }
+          return formattedSize;
+      }
+
       function disable_button(element, form_id) {
         element.disabled = true;
         element.style.cursor = "not-allowed";
@@ -184,7 +220,7 @@
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'uplaud.txt';
+        a.download = '{{sitename}}.txt';
         a.click();
         URL.revokeObjectURL(url);
       }
@@ -220,12 +256,12 @@
       document.addEventListener('DOMContentLoaded', () => {
         const uploadForm = document.getElementById('upload_form');
         const filesInput = document.getElementById('files');
-        const totalSizeLimit = 100 * 1024 * 1024;
+        const max_total_upload_size_b = {{max_total_upload_size_b}};
 
         uploadForm.addEventListener('submit', (e) => {
           if (!within_fsize_range(filesInput.files)) {
             e.preventDefault();
-            alert('Total file size exceeds 100MB.');
+            alert(`Total file size exceeds ${formatFsize(max_total_upload_size_b)}.`);
             return;
           }
           uploadForm.submit();
@@ -280,13 +316,15 @@
             return false;
           }
 
-          if (files.length > 10) {
-            alert('There is a limit of 10 files per request.');
+          const maxFileUploadCount = {{max_file_upload_count}};
+          const max_total_upload_size_b = {{max_total_upload_size_b}};
+          if (files.length > maxFileUploadCount) {
+            alert(`There is a limit of ${maxFileUploadCount} files per request.`);
             return false;
           }
 
           if (!within_fsize_range(files)) {
-            alert('Total file size exceeds 100MB.');
+            alert(`Total file size exceeds ${formatFsize(max_total_upload_size_b)}.`);
             return false;
           }
 
@@ -294,12 +332,12 @@
         }
 
         function within_fsize_range(files) {
-          const maxSize = 100 * 1024 * 1024;
+          const max_total_upload_size_b = {{max_total_upload_size_b}};
           let totalSize = 0;
           for (const file of files) {
             totalSize += file.size;
           }
-          return totalSize <= maxSize;
+          return totalSize <= max_total_upload_size_b;
         }
 
         function updateThumbnail(dropZoneElement, files) {

@@ -2,6 +2,7 @@ from datetime import timedelta
 
 from utils import format_time_bin, make_path
 
+sitename = 'Uplaud'
 secret: str = 'jhfrjeghfjrghjlllloooooooooorgnvnfn' # change me
 database_path: str = make_path('uplaud.db')
 

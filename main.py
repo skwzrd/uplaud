@@ -9,8 +9,10 @@ from configs import (
     database_path,
     default_expiration_str,
     max_data_age_str,
+    max_file_upload_count,
     max_total_upload_size_b,
-    secret
+    secret,
+    sitename
 )
 from db import init_db, query_db
 from forms import UploadForm, UserForm
@@ -35,11 +37,11 @@ def create_app():
     app.config['SECRET_KEY'] = secret
     app.config['UPLOAD_FOLDER'] = 'static/uploads'
     app.config['MAX_CONTENT_LENGTH'] = max_total_upload_size_b
-    app.config['SESSION_COOKIE_NAME']='uplaudcookie'
-    app.config['SESSION_COOKIE_HTTPONLY']=True
-    app.config['SESSION_COOKIE_SECURE']=True
+    app.config['SESSION_COOKIE_NAME'] = 'cookiedough'
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['SESSION_COOKIE_SECURE'] = True
 
-    # limiter.init_app(app)
+    limiter.init_app(app)
     init_db(database_path)
     
     return app
@@ -142,6 +144,9 @@ def upload_get():
             default_expiration_str=default_expiration_str,
             max_data_age_str=max_data_age_str,
             logged_in=session.get('user_id'),
+            sitename=sitename,
+            max_total_upload_size_b=max_total_upload_size_b,
+            max_file_upload_count=max_file_upload_count,
         )
         return render_template('index.html', **d)
 
@@ -151,6 +156,9 @@ def upload_get():
         default_expiration_str=default_expiration_str,
         max_data_age_str=max_data_age_str,
         logged_in=session.get('user_id'),
+        sitename=sitename,
+        max_total_upload_size_b=max_total_upload_size_b,
+        max_file_upload_count=max_file_upload_count,
     )
     return render_template('index.html', **d)
 
