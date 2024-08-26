@@ -187,20 +187,6 @@
     </div>
 
     <script>
-      function formatTimeBin(minutes) {
-          let s = '';
-          if (minutes < 60) {
-              s = minutes !== 1 ? `${Math.round(minutes * 10) / 10}m` : '1m';
-          } else if (minutes < 1440) {
-              const hours = minutes / 60;
-              s = hours !== 1 ? `${Math.round(hours * 10) / 10}h` : '1h';
-          } else {
-              const days = minutes / 1440;
-              s = days !== 1 ? `${Math.floor(days)}d` : '1d';
-          }
-          return s;
-      }
-
       function formatFsize(bytesSize) {
           if (typeof bytesSize !== 'number' || !Number.isInteger(bytesSize)) {
               return null;
@@ -223,12 +209,13 @@
           return formattedSize;
       }
 
-      function disable_button(element, form_id) {
-        element.disabled = true;
-        element.style.cursor = "not-allowed";
-        element.value = "...";
-        document.getElementById(form_id).submit();
-      }
+      document.getElementById('upload_form').addEventListener('submit', function(event) {
+          document.getElementById('upload').hidden = true;
+      });
+
+      document.getElementById('user_form').addEventListener('submit', function(event) {
+          document.getElementById('submit').hidden = true;
+      });
 
       function download_text_as_txt_file(button, text_element_id) {
         const textElement = document.getElementById(text_element_id);
