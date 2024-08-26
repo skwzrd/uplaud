@@ -84,7 +84,9 @@
     
     {% if logged_in %}
       {% if not file_records and not text_records and logged_in %}
-      No existing data found.
+      <div class="card">
+        No existing data found.
+      </div>
       {% endif %}
     {% endif %}
 
@@ -172,6 +174,7 @@
         <li>Each upload has a capacity of {{max_total_upload_size_str}} and {{max_file_upload_count}} files.</li>
         <li>Files and text are NOT encrypted at the moment. It's recommended that you archive (i.e. zip) sensitive contents with passwords.</li>
         <li>Passwords ARE encrypted using scrypt and a salt length of 16 characters.</li>
+        <li>Accounts (i.e. credentials) are removed when they no longer have data associated with them. So if all your files expire and get deleted, so does your account.</li>
         <li>Uploaded files are not altered. Files are not compressed. File metadata is not modified.</li>
         <li>There are no difficult-to-remember URL tokens on this site. Instead, you create your own credentials with relaxed username and password rules.</li>
         <li>New credentials and data uploads can be submitted in the same <a href="#upload_form">Upload Data</a> form.</li>
