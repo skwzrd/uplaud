@@ -249,6 +249,11 @@ ul {
     padding: 0;
 }
 
+.faq_ul {
+    padding-left: 2em;
+    padding-right: 2em;
+}
+
 .bg-danger {
     background-color: #530000;
 }

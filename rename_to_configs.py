@@ -1,12 +1,14 @@
 from datetime import timedelta
 
-from utils import format_time_bin, make_path
+from utils import format_fsize, format_time_bin, make_path
 
 sitename = 'Uplaud'
+sysadmin_email = ""
 secret: str = 'jhfrjeghfjrghjlllloooooooooorgnvnfn' # change me
 database_path: str = make_path('uplaud.db')
 
 max_total_upload_size_b: int = 100 * 1024 * 1024 # nginx will require setting `require client_max_body_size 100m`;
+max_total_upload_size_str: str = format_fsize(max_total_upload_size_b)
 max_text_size_b: int = 10 * 1024 * 1024
 max_server_data_size_b: int = 5 * 1024 * 1024 * 1024
 

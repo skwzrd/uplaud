@@ -11,8 +11,10 @@ from configs import (
     max_data_age_str,
     max_file_upload_count,
     max_total_upload_size_b,
+    max_total_upload_size_str,
     secret,
-    sitename
+    sitename,
+    sysadmin_email
 )
 from db import init_db, query_db
 from forms import UploadForm, UserForm
@@ -41,7 +43,7 @@ def create_app():
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['SESSION_COOKIE_SECURE'] = True
 
-    limiter.init_app(app)
+    # limiter.init_app(app)
     init_db(database_path)
     
     return app
@@ -134,22 +136,6 @@ def upload_get():
     user_form: UserForm = UserForm()
     upload_form: UploadForm = UploadForm()
 
-    if session.get('user_id'):
-        file_records, text_records = get_data(session.get('user_id'))
-        d = dict(
-            upload_form=upload_form,
-            user_form=user_form,
-            file_records=file_records,
-            text_records=text_records,
-            default_expiration_str=default_expiration_str,
-            max_data_age_str=max_data_age_str,
-            logged_in=session.get('user_id'),
-            sitename=sitename,
-            max_total_upload_size_b=max_total_upload_size_b,
-            max_file_upload_count=max_file_upload_count,
-        )
-        return render_template('index.html', **d)
-
     d = dict(
         upload_form=upload_form,
         user_form=user_form,
@@ -159,7 +145,18 @@ def upload_get():
         sitename=sitename,
         max_total_upload_size_b=max_total_upload_size_b,
         max_file_upload_count=max_file_upload_count,
+        max_total_upload_size_str=max_total_upload_size_str,
+        sysadmin_email=sysadmin_email,
     )
+
+    if session.get('user_id'):
+        file_records, text_records = get_data(session.get('user_id'))
+        d.update(dict(
+            file_records=file_records,
+            text_records=text_records,
+        ))
+        return render_template('index.html', **d)
+
     return render_template('index.html', **d)
 
 

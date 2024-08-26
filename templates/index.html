@@ -74,10 +74,6 @@
 
         <div>
           <div>Delete in (Optional)</div>
-          <small>Default: {{default_expiration_str}}</small>
-          <br>
-          <small>Limit: {{max_data_age_str}}</small>
-          <br>
           {{upload_form.delete_days()}}
           {{upload_form.delete_hours()}}
           {{upload_form.delete_minutes()}}
@@ -165,6 +161,27 @@
         {% endfor %}
       </ul>
     {% endif %}
+
+    <div class="card">
+      <h3>Site Information</h3>
+      This site allows for simple text and file hosting.
+
+      <ul class="faq_ul">
+        <li>The default hosting duration is {{default_expiration_str}}.</li>
+        <li>The longest hosting duration of a single file or text entry is {{max_data_age_str}}.</li>
+        <li>Each upload has a capacity of {{max_total_upload_size_str}} and {{max_file_upload_count}} files.</li>
+        <li>Files and text are NOT encrypted at the moment. It's recommended that you archive (i.e. zip) sensitive contents with passwords.</li>
+        <li>Passwords ARE encrypted using scrypt and a salt length of 16 characters.</li>
+        <li>Uploaded files are not altered. Files are not compressed. File metadata is not modified.</li>
+        <li>There are no difficult-to-remember URL tokens on this site. Instead, you create your own credentials with relaxed username and password rules.</li>
+        <li>New credentials and data uploads can be submitted in the same <a href="#upload_form">Upload Data</a> form.</li>
+        <li>Similarly, existing credentials and data uploads can be submitted in the same <a href="#upload_form">Upload Data</a> form.</li>
+        <li>If you'd like to get in contact, please email me at {{sysadmin_email}}.</li>
+        <li>Please be respectful.</li>
+      </ul>
+
+      Enjoy!
+    </div>
 
     <script>
       function formatTimeBin(minutes) {
