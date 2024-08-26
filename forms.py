@@ -10,7 +10,7 @@ from wtforms import (
     SubmitField,
     TextAreaField
 )
-from wtforms.validators import DataRequired, Length, StopValidation
+from wtforms.validators import DataRequired, Length, ValidationError
 
 from configs import (
     database_path,
@@ -58,7 +58,7 @@ def validate_username_is_provided(form, field):
 
     if not username:
         flash('Please provide a username.', 'warning')
-        raise StopValidation()
+        raise ValidationError()
 
 
 def validate_login_user(form, field):
@@ -71,8 +71,9 @@ def validate_login_user(form, field):
 
     if not user_record or not is_correct_password(user_record, password_candidate):
         flash('Incorrect username or password.', 'warning')
-        raise StopValidation()
+        raise ValidationError()
 
+    flash('Welcome back!', 'success')
     session['user_id'] = user_record['user_id']
 
 
@@ -91,15 +92,17 @@ def validate_uploading_user(form, field):
         user_count = query_db(database_path, '''select count(*) as s from users;''', one=True)['s']
         if user_count + 1 > max_user_count:
             flash('Server resources are currently overburdened. Come back later.', 'warning')
-            raise StopValidation()
+            raise ValidationError()
 
+        flash('Welcome!', 'success')
         session['user_id'] = create_user(username, password_candidate)
         return
 
     if not is_correct_password(user_record, password_candidate):      
         flash(f'The provided username may already exist. Unless you typed the wrong password, please use a different set of credentials for your submission.', 'danger')
-        raise StopValidation()
+        raise ValidationError()
 
+    flash('Welcome back!', 'success')
     session['user_id'] = user_record['user_id']
 
 
@@ -111,18 +114,18 @@ def validate_upload(form, field):
         text_size_b = get_bcount_from_string(text)
         if text_size_b > max_text_size_b:
             flash(f'Text must be less than {format_fsize(max_text_size_b)}. We received {format_fsize(text_size_b)}.', 'warning')
-            raise StopValidation()
+            raise ValidationError()
 
     files = [f for f in form.files.data]
     file_count = len(files)
     is_files = any(files)
     if not text and not is_files:
         flash('Form must include either text or files.', 'warning')
-        raise StopValidation()
+        raise ValidationError()
 
     if file_count > max_file_upload_count:
         flash(f'Total file count exceeds {max_file_upload_count}. We received {file_count} files.')
-        raise StopValidation()
+        raise ValidationError()
 
 
 def validate_unit_of_time(field_name):
@@ -175,7 +178,7 @@ def validate_server_capacity(form, field):
 
     if total_server_size_b > max_server_data_size_b:
         flash('Server resources are currently depleted. Come back later.', 'warning')
-        raise StopValidation()
+        raise ValidationError()
 
 
 class UserForm(FlaskForm):
@@ -185,8 +188,8 @@ class UserForm(FlaskForm):
 
 
 class UploadForm(FlaskForm):
-    username = StringField('Username', validators=[Length(min=1, max=512), validate_uploading_user], render_kw={'placeholder': 'Username'})
-    password = PasswordField('Password', validators=[Length(min=1, max=512)], render_kw={'placeholder': 'Password'})
+    username = StringField('Username', validators=[Length(min=0, max=512), validate_uploading_user], render_kw={'placeholder': 'Username'})
+    password = PasswordField('Password', validators=[Length(min=0, max=512)], render_kw={'placeholder': 'Password'})
 
     text = TextAreaField('Text', [Length(min=0, max=max_text_size_chars)])
     files = MultipleFileField('Files', [validate_upload, validate_server_capacity])
@@ -197,3 +200,21 @@ class UploadForm(FlaskForm):
 
     upload = SubmitField('Upload', validators=[])
 
+    def validate(self, extra_validators=None) -> bool:
+        """Overriding this definition to validate fields in a specific order, and to halt on a validation error."""
+        item_order = [
+            'text',
+            'files',
+            'username',
+            'password',
+            'delete_days',
+            'delete_hours',
+            'delete_minutes',
+        ]
+        for item in item_order:
+            print(item)
+            field = self._fields[item]
+            if not field.validate(self, tuple()):
+                print(False)
+                return False
+        return True

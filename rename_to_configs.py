@@ -12,6 +12,7 @@ max_server_data_size_b: int = 5 * 1024 * 1024 * 1024
 max_text_size_chars: int = 10_000_000
 
 default_expiration_minutes: int = 15
+default_expiration_str: str = format_time_bin(default_expiration_minutes)
 
 # these sum together to create a `max_data_age` for uploaded content
 max_data_age_days: int = 5

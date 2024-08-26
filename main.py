@@ -7,7 +7,7 @@ from werkzeug.utils import secure_filename
 
 from configs import (
     database_path,
-    default_expiration_minutes,
+    default_expiration_str,
     max_data_age_str,
     max_total_upload_size_b,
     secret
@@ -39,7 +39,7 @@ def create_app():
     app.config['SESSION_COOKIE_HTTPONLY']=True
     app.config['SESSION_COOKIE_SECURE']=True
 
-    limiter.init_app(app)
+    # limiter.init_app(app)
     init_db(database_path)
     
     return app
@@ -123,7 +123,7 @@ def save_files(files, user_id, delete_datetime):
 @app.route('/logout', methods=['GET'])
 def logout():
     session.clear()
-    flash('Logged out', 'success')
+    flash('See you later!', 'success')
     return redirect(url_for('upload_get'))
 
 
@@ -139,6 +139,7 @@ def upload_get():
             user_form=user_form,
             file_records=file_records,
             text_records=text_records,
+            default_expiration_str=default_expiration_str,
             max_data_age_str=max_data_age_str,
             logged_in=session.get('user_id'),
         )
@@ -147,7 +148,7 @@ def upload_get():
     d = dict(
         upload_form=upload_form,
         user_form=user_form,
-        default_expiration_str=format_time_bin(default_expiration_minutes),
+        default_expiration_str=default_expiration_str,
         max_data_age_str=max_data_age_str,
         logged_in=session.get('user_id'),
     )
@@ -165,7 +166,6 @@ def upload_post():
 
     if user_form.submit.data and user_form.validate_on_submit():
         # form validation process will set session id, effectively logging the user in
-        flash('Welcome Back!', 'success')
         return redirect(url_for('upload_get'))
 
     elif upload_form.upload.data and upload_form.validate_on_submit() and session.get('user_id'):

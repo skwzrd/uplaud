@@ -43,13 +43,13 @@ def format_fsize(bytes_size):
 def format_time_bin(minutes):
     s = ''
     if minutes < 60:
-        s = f'{round(minutes, 1)}min' if minutes != 1 else '1min'
+        s = f'{round(minutes, 1)}m' if minutes != 1 else '1m'
     elif minutes < 1440:
         hours = minutes / 60
         s = f'{round(hours, 1)}h' if hours != 1 else '1h'
     else:
         days = minutes / 1440
-        s = f'{round(days, 1)}d' if days != 1 else '1d'
+        s = f'{int(days)}d' if days != 1 else '1d'
     return s
 
 
