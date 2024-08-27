@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from flask import flash, g, session
+from flask import flash, g, request, session
 from flask_wtf import FlaskForm
 from werkzeug.security import check_password_hash, generate_password_hash
 from wtforms import (
@@ -24,7 +24,8 @@ from configs import (
     max_server_data_size_b,
     max_text_size_b,
     max_text_size_chars,
-    max_user_count
+    max_user_count,
+    min_request_content_length_for_file_upload
 )
 from db import get_db_conn, query_db
 from utils import format_fsize, format_time_bin, get_bcount_from_string
@@ -124,8 +125,12 @@ def validate_upload(form, field):
         raise ValidationError()
 
     if file_count > max_file_upload_count:
-        flash(f'Total file count exceeds {max_file_upload_count}. We received {file_count} files.')
+        flash(f'Total file count exceeds {max_file_upload_count}. We received {file_count} files.', 'warning')
         raise ValidationError()
+    
+    if file_count > 0 and is_files and request.content_length < min_request_content_length_for_file_upload:
+        flash('Something doesn\'t seem right.', 'warning')
+        return ValidationError()
 
 
 def validate_unit_of_time(field_name):
@@ -212,9 +217,7 @@ class UploadForm(FlaskForm):
             'delete_minutes',
         ]
         for item in item_order:
-            print(item)
             field = self._fields[item]
             if not field.validate(self, tuple()):
-                print(False)
                 return False
         return True

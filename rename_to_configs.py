@@ -11,6 +11,7 @@ max_total_upload_size_b: int = 100 * 1024 * 1024 # nginx will require setting `r
 max_total_upload_size_str: str = format_fsize(max_total_upload_size_b)
 max_text_size_b: int = 10 * 1024 * 1024
 max_server_data_size_b: int = 5 * 1024 * 1024 * 1024
+min_request_content_length_for_file_upload: int = 1024
 
 max_text_size_chars: int = 10_000_000
 

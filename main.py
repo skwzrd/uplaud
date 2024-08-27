@@ -1,7 +1,16 @@
 import os
 from datetime import datetime
 
-from flask import Flask, flash, g, redirect, render_template, session, url_for
+from flask import (
+    Flask,
+    flash,
+    g,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for
+)
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.utils import secure_filename
 
@@ -43,7 +52,7 @@ def create_app():
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['SESSION_COOKIE_SECURE'] = True
 
-    # limiter.init_app(app)
+    limiter.init_app(app)
     init_db(database_path)
     
     return app
@@ -105,8 +114,32 @@ def save_files(files, user_id, delete_datetime):
 
         file_size_b = os.path.getsize(filepath)
 
-        logger.info(f'New file uploaded: {filename_original}')
-        logger.info(f'Size: {format_fsize(file_size_b)}')
+        d = dict(
+            current_datetime=g.current_datetime,
+            user_id=user_id,
+            x_forwarded_for=request.headers.get("X-Forwarded-For", None),
+            remote_addr=request.headers.get("Remote-Addr", None),
+            referrer=request.referrer,
+            content_md5=request.content_md5,
+            origin=request.origin,
+            scheme=request.scheme,
+            method=request.method,
+            root_path=request.root_path,
+            path=request.path,
+            query_string=request.query_string.decode(),
+            user_agent=request.user_agent.__str__(),
+            x_forwarded_proto=request.headers.get("X-Forwarded-Proto", None),
+            x_forwarded_host=request.headers.get("X-Forwarded-Host", None),
+            x_forwarded_prefix=request.headers.get("X-Forwarded-Prefix", None),
+            host=request.headers.get("Host", None),
+            connection=request.headers.get("Connection", None),
+            content_length=request.content_length,
+        )
+        sql_placeholder = ','.join(['?'] * len(d))
+        cols = ','.join([k for k in d])
+        sql_string = f'''INSERT INTO logs ({cols}) VALUES ({sql_placeholder});'''
+        params = [v for v in d.values()]
+        query_db(database_path, sql_string, params, commit=True)
 
         file_type = None
         for header in file.headers:
@@ -118,8 +151,8 @@ def save_files(files, user_id, delete_datetime):
             file_type = os.path.splitext(file.filename)[1].lower().strip('.')
 
         params = (user_id, filename_original, filename_secure, filepath, file_size_b, file_type, g.current_datetime, delete_datetime)
-        sql_param_placeholder = ','.join(['?'] * len(params))
-        sql_string = f'''INSERT INTO files (user_id, filename_original, filename_secure, file_path, file_size_b, file_type, upload_datetime, delete_datetime) VALUES ({sql_param_placeholder});'''
+        sql_placeholder = ','.join(['?'] * len(params))
+        sql_string = f'''INSERT INTO files (user_id, filename_original, filename_secure, file_path, file_size_b, file_type, upload_datetime, delete_datetime) VALUES ({sql_placeholder});'''
 
         query_db(database_path, sql_string, params, commit=True)
 

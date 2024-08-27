@@ -91,6 +91,29 @@ def init_db(database_path):
                 delete_datetime DATETIME NOT NULL,
                 FOREIGN KEY(user_id) REFERENCES user(user_id)
             )'''
+            , '''
+            CREATE TABLE IF NOT EXISTS logs (
+                log_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                current_datetime DATETIME,
+                x_forwarded_for TEXT,
+                remote_addr TEXT,
+                referrer TEXT,
+                content_md5 TEXT,
+                origin TEXT,
+                scheme TEXT,
+                method TEXT,
+                root_path TEXT,
+                path TEXT,
+                query_string TEXT,
+                user_agent TEXT,
+                x_forwarded_proto TEXT,
+                x_forwarded_host TEXT,
+                x_forwarded_prefix TEXT,
+                host TEXT,
+                connection TEXT,
+                content_length INTEGER
+            )'''
         ]
         for sql_string in sql_strings:
             query_db(database_path, sql_string, commit=True)

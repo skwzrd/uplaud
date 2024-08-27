@@ -209,13 +209,19 @@
           return formattedSize;
       }
 
-      document.getElementById('upload_form').addEventListener('submit', function(event) {
-          document.getElementById('upload').hidden = true;
-      });
+      const upload_form = document.getElementById('upload_form');
+      if (upload_form){
+        document.getElementById('upload_form').addEventListener('submit', function(event) {
+            document.getElementById('upload').hidden = true;
+        });
+      }
 
-      document.getElementById('user_form').addEventListener('submit', function(event) {
-          document.getElementById('submit').hidden = true;
-      });
+      const user_form = document.getElementById('user_form');
+      if (user_form){
+        user_form.addEventListener('submit', function(event) {
+            document.getElementById('submit').hidden = true;
+        });
+      }
 
       function download_text_as_txt_file(button, text_element_id) {
         const textElement = document.getElementById(text_element_id);
